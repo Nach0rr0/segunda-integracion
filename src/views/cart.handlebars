@@ -3,20 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito de Compras</title>
+    <title>Carrito</title>
+    <link rel="stylesheet" type="text/css" href="/src/public/css/cart.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007bff;
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Carrito de Compras</h1>
-    {{#if products.length}}
+    <h1>Cart View</h1>
+    
+    {{#if carts.length}}
         <ul>
-            {{#each products}}
+            {{#each carts}}
                 <li>
-                    <strong>{{this.product.name}}</strong> - Cantidad: {{this.quantity}} - Precio: {{this.product.price}}
+                    <p>Cart ID: {{this._id}}</p>
+                    <p>Products:</p>
+                    <ul>
+                        {{#each this.products}}
+                            <li>{{this.product}} - Quantity: {{this.quantity}}</li>
+                        {{/each}}
+                    </ul>
                 </li>
             {{/each}}
         </ul>
     {{else}}
-        <p>El carrito está vacío.</p>
+        <p>No carts available.</p>
     {{/if}}
+
+    <!-- Paginación -->
+    {{#if pagination.prev}}
+        <a href="?page={{pagination.prev}}">Anterior</a>
+    {{/if}}
+    
+    Page {{pagination.current}} of {{pagination.total}}
+    
+    {{#if pagination.next}}
+        <a href="?page={{pagination.next}}">Siguiente</a>
+    {{/if}}
+
+<script src="/js/cart.js"></script>
+
 </body>
 </html>

@@ -23,10 +23,16 @@ cartsRouter.post("/", async (req, res) => {
 
 cartsRouter.get("/", async (req, res) => {
 	try {
-		const carts = await cartsService.getCarts();
+		const page = req.query.page ? parseInt(req.query.page) : 1;
+		const carts = await cartsService.getCarts(page);
+    
 		res.status(200).json({ carts });
 	} catch (error) {
-		console.log(error.message);
+		console.error(error.message);
+		res.status(500).json({
+			success: false,
+			message: error.message,
+		});
 	}
 });
 

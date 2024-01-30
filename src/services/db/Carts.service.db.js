@@ -1,106 +1,113 @@
 import CartModel from "../../dao/models/Cart.model.js";
-export default class CartsManager {
-	async createCart() {
-		try {
-			const product = [];
-			const cart = await CartModel.create({ product });
 
-			return cart;
-		} catch (error) {
-			throw error;
-		}
-	}
+const ITEMS_PER_PAGE = 10; // Establece el número de carritos por página según tus necesidades
 
-	async getCarts() {
-		try {
-			const carts = await CartModel.find().lean();
+export default class CartsService {
+  async createCart() {
+    try {
+      const cart = await CartModel.create({ products: [] });
 
-			return carts;
-		} catch (error) {
-			throw error;
-		}
-	}
+      return cart;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-	async getCartById(cid) {
-		try {
-			const cart = await CartModel.findById(cid).lean();
+  async getCarts(page = 1) {
+    try {
+      const skipItems = (page - 1) * ITEMS_PER_PAGE;
 
-			return cart;
-		} catch (error) {
-			throw error;
-		}
-	}
+      const carts = await CartModel.find()
+        .skip(skipItems)
+        .limit(ITEMS_PER_PAGE)
+        .lean();
 
-	async addProductToCart(cid, pid) {
-		try {
-			const productExistsInCart = await CartModel.exists({ _id: cid, "products.product": pid });
-			let cart;
-			if (!productExistsInCart) {
-				cart = await CartModel.findByIdAndUpdate(
-					cid,
-					{ $push: { product: { product: pid, quantity: 1 } } },
-					{ new: true }
-				).lean();
-			} else {
-				cart = await CartModel.findOneAndUpdate(
-					{ _id: cid, "products.product": pid },
-					{ $inc: { "products.$.quantity": 1 } },
-					{ new: true }
-				).lean();
-			}
+      return carts;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-			return cart;
-		} catch (error) {
-			throw error;
-		}
-	}
+  async getCartById(cid) {
+    try {
+      const cart = await CartModel.findById(cid).lean();
 
-	async updateProductQuantity(pid, cid, quantity) {
-		try {
-			const productExistsInCart = await CartModel.exists({ _id: cid, "products.product": pid });
-			if (!productExistsInCart) {
-				return { message: "Product not found in cart" };
-			}
+      return cart;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-			const cart = await CartModel.findOneAndUpdate(
-				{ _id: cid, "products.product": pid },
-				{ $set: { "products.$.quantity": quantity } },
-				{ new: true }
-			).lean();
+  async addProductToCart(cid, pid) {
+    try {
+      const productExistsInCart = await CartModel.exists({ _id: cid, "products.product": pid });
+      let cart;
+      if (!productExistsInCart) {
+        cart = await CartModel.findByIdAndUpdate(
+          cid,
+          { $push: { products: { product: pid, quantity: 1 } } },
+          { new: true }
+        ).lean();
+      } else {
+        cart = await CartModel.findOneAndUpdate(
+          { _id: cid, "products.product": pid },
+          { $inc: { "products.$.quantity": 1 } },
+          { new: true }
+        ).lean();
+      }
 
-			return cart;
-		} catch (error) {
-			throw error;
-		}
-	}
+      return cart;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-	async deleteProductFromCart(cid, pid) {
-		try {
-			const productExistsInCart = await CartModel.exists({ _id: cid, "products.product": pid });
+  async updateProductQuantity(pid, cid, quantity) {
+    try {
+      const productExistsInCart = await CartModel.exists({ _id: cid, "products.product": pid });
+      if (!productExistsInCart) {
+        return { message: "Product not found in cart" };
+      }
 
-			if (!productExistsInCart) {
-				return { message: "Product not found in cart" };
-			}
+      const cart = await CartModel.findOneAndUpdate(
+        { _id: cid, "products.product": pid },
+        { $set: { "products.$.quantity": quantity } },
+        { new: true }
+      ).lean();
 
-			const cart = await CartModel.findByIdAndUpdate(
-				cid,
-				{ $pull: { product: { product: pid } } },
-				{ new: true }
-			).lean();
+      return cart;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-			return cart;
-		} catch (error) {
-			throw error;
-		}
-	}
+  async deleteProductFromCart(cid, pid) {
+    try {
+      const productExistsInCart = await CartModel.exists({ _id: cid, "products.product": pid });
 
-	async emptyCart(cid) {
-		try {
-			const cart = await CartModel.findByIdAndUpdate(cid, { $set: { product: [] } }, { new: true }).lean();
+      if (!productExistsInCart) {
+        return { message: "Product not found in cart" };
+      }
 
-			return cart;
-		} catch (error) {
-			throw error;
-		}
-	}
+      const cart = await CartModel.findByIdAndUpdate(
+        cid,
+        { $pull: { products: { product: pid } } },
+        { new: true }
+      ).lean();
+
+      return cart;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async emptyCart(cid) {
+    try {
+      const cart = await CartModel.findByIdAndUpdate(cid, { $set: { products: [] } }, { new: true }).lean();
+
+      return cart;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
